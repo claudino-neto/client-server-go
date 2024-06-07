@@ -1,4 +1,4 @@
-package impl
+package main
 
 import (
 	"fmt"
@@ -6,11 +6,13 @@ import (
 	"net/http"
 )
 
+//HTTP GET
+
 type HTTP struct{}
 
 // HTTP GET
-func (t *HTTP) GET(args *shared.Args, reply *int) error {
-	url := "http://example.com"
+func (t *HTTP) GET(args *shared.Args, reply *string) error {
+	url := "https://www.cin.ufpe.br/~lab9/"
 
 	// Fazendo a solicitação GET
 	response, err := http.Get(url)
