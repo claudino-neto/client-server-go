@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -11,6 +12,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 
 func handleCalc(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(w, "Calculator Service")
+	io.WriteString(w, "Calculator Service")
 }
 
 func setupRoutes() {
@@ -19,14 +21,19 @@ func setupRoutes() {
 }
 
 func main() {
+	setupRoutes()
+
 	// Establishing TCP Connection
 	fmt.Println("Server Running...")
-	err := http.ListenAndServe("localhost:8080", nil)
+	fmt.Println("Listening on \"localhost:8081\"")
+	fmt.Println("Waiting for Client to connect...")
+
+	err := http.ListenAndServe("localhost:8081", nil)
+
 	if err != nil {
 		fmt.Printf("Error while listening: %s\n", err.Error())
 	}
-	fmt.Println("Listening on \"localhost:8080\"")
-	fmt.Println("Waiting for Client to connect...")
 
-	setupRoutes()
+	fmt.Println("Conexão encerrada!")
+
 }
