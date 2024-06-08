@@ -10,8 +10,6 @@ import (
 func main() {
 	fmt.Println("Trying to connect with Server on \"localhost:8081\"...")
 	client := http.Client{Timeout: time.Duration(1) * time.Second}
-	// input >> get | post
-	// url >> localhost:8080/...
 
 	//Criando uma requisição HTTP GET para o servidor local
 	req, err := http.NewRequest("GET", "http://localhost:8081/calculator", nil)
