@@ -1,24 +1,37 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
 func main() {
 	fmt.Println("Trying to connect with Server on \"localhost:8081\"...")
-	client := http.Client{Timeout: time.Duration(1) * time.Second}
 
-	//Criando uma requisição HTTP GET para o servidor local
-	req, err := http.NewRequest("GET", "http://localhost:8081/calculator", nil)
+	valor1 := 2
+	valor2 := 5
+
+	body, _ := json.Marshal(map[string]int{
+		"valor1": valor1,
+		"valor2": valor2,
+	})
+	payload := bytes.NewBuffer(body)
+
+	// Criando uma requisição HTTP POST para o servidor local
+	req, err := http.NewRequest("POST", "http://localhost:8081/calculator", payload)
 	if err != nil {
 		fmt.Println("Erro ao criar requisição:", err)
 		return
 	}
 
-	// Envia a requisição usando o cliente criado e recebe a resposta
+	// Configurando o cabeçalho da requisição
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	// Enviando a requisição usando o cliente criado e recebendo a resposta
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Erro ao enviar requisição:", err)
@@ -26,14 +39,14 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	// Lê o corpo da resposta
-	body, err := io.ReadAll(resp.Body)
+	// Lendo o corpo da resposta
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Erro ao ler resposta:", err)
 		return
 	}
 
-	// Processa a resposta
-	fmt.Println("Resposta do servidor:", string(body))
+	// Imprimindo a resposta do servidor
+	fmt.Println("Resposta do servidor:", string(respBody))
 
 }
