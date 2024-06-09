@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +21,7 @@ func handleCalc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Lendo o corpo da requisição
-	var data map[string]int
+	var data map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		fmt.Println("Erro ao analisar o corpo da requisição:", err)
@@ -28,20 +29,40 @@ func handleCalc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	val1, val1Exists := data["valor1"]
-	val2, val2Exists := data["valor2"]
+	val1, val1Exists := data["valor1"].(float64)
+	val2, val2Exists := data["valor2"].(float64)
+	operacao, operacaoExists := data["operacao"].(string)
 
-	if !val1Exists || !val2Exists {
-		fmt.Println("Valores não fornecidos pelo cliente")
-		http.Error(w, "Valores não fornecidos pelo cliente", http.StatusBadRequest)
+	if !val1Exists || !val2Exists || !operacaoExists {
+		fmt.Println("Valores ou operação não fornecidos pelo cliente")
+		http.Error(w, "Valores ou operação não fornecidos pelo cliente", http.StatusBadRequest)
 		return
 	}
 
-	// Realizando a soma
-	resultado := val1 + val2
+	// Realizando a operação
+	var resultado float64
+	switch operacao {
+	case "+":
+		resultado = val1 + val2
+	case "-":
+		resultado = val1 - val2
+	case "*":
+		resultado = val1 * val2
+	case "/":
+		if val2 == 0 {
+			fmt.Println("Divisão por zero")
+			http.Error(w, "Divisão por zero", http.StatusBadRequest)
+			return
+		}
+		resultado = val1 / val2
+	default:
+		fmt.Println("Operação desconhecida:", operacao)
+		http.Error(w, "Operação desconhecida", http.StatusBadRequest)
+		return
+	}
 
 	// Respondendo ao cliente com o resultado
-	fmt.Fprintf(w, "Soma de %d e %d é %d", val1, val2, resultado)
+	fmt.Fprintf(w, "Resultado da operação %s entre %s e %s é %.2f", operacao, strconv.FormatFloat(val1, 'f', -1, 64), strconv.FormatFloat(val2, 'f', -1, 64), resultado)
 }
 
 func setupRoutes() {

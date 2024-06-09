@@ -11,12 +11,26 @@ import (
 func main() {
 	fmt.Println("Trying to connect with Server on \"localhost:8081\"...")
 
-	valor1 := 2
-	valor2 := 5
+	var valor1, valor2 int
+	var operacao string
 
-	body, _ := json.Marshal(map[string]int{
-		"valor1": valor1,
-		"valor2": valor2,
+	fmt.Print("Digite o primeiro valor: ")
+	fmt.Scanln(&valor1)
+
+	fmt.Print("Digite o segundo valor: ")
+	fmt.Scanln(&valor2)
+
+	fmt.Print("Digite a operação (+, -, *, /): ")
+	fmt.Scanln(&operacao)
+
+	// valor1 := 2
+	// valor2 := 5
+	// operacao := '/'
+
+	body, _ := json.Marshal(map[string]interface{}{
+		"valor1":   valor1,
+		"valor2":   valor2,
+		"operacao": string(operacao),
 	})
 	payload := bytes.NewBuffer(body)
 
