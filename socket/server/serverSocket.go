@@ -3,25 +3,21 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"strconv"
 )
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(w, "HOME PAGE!")
+	// Respondendo ao cliente com o resultado
+	fmt.Fprintf(w, "Resultado da requisção %s é HOME PAGE!", r.Method)
 }
 
-func handleCalc(w http.ResponseWriter, r *http.Request) {
+func handleReq(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Recebendo requisição do cliente...")
 
-	// Verificando se o método da requisição é POST
-	if r.Method != http.MethodPost {
-		http.Error(w, "Método não suportado", http.StatusMethodNotAllowed)
-		return
-	}
-
 	// Lendo o corpo da requisição
-	var data map[string]interface{}
+	var data map[string]string
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		fmt.Println("Erro ao analisar o corpo da requisição:", err)
@@ -29,48 +25,98 @@ func handleCalc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	val1, val1Exists := data["valor1"].(float64)
-	val2, val2Exists := data["valor2"].(float64)
-	operacao, operacaoExists := data["operacao"].(string)
+	link, linkExists := data["link"]
 
-	if !val1Exists || !val2Exists || !operacaoExists {
+	if !linkExists {
 		fmt.Println("Valores ou operação não fornecidos pelo cliente")
 		http.Error(w, "Valores ou operação não fornecidos pelo cliente", http.StatusBadRequest)
 		return
 	}
 
 	// Realizando a operação
-	var resultado float64
-	switch operacao {
-	case "+":
-		resultado = val1 + val2
-	case "-":
-		resultado = val1 - val2
-	case "*":
-		resultado = val1 * val2
-	case "/":
-		if val2 == 0 {
-			fmt.Println("Divisão por zero")
-			http.Error(w, "Divisão por zero", http.StatusBadRequest)
-			return
+	var reply string
+	switch r.Method {
+	case "GET":
+
+		// Fazendo a solicitação GET
+		response, err := http.Get(link)
+		if err != nil {
+			fmt.Println("Error to create solicitation:", err)
 		}
-		resultado = val1 / val2
+		defer response.Body.Close() // Certifique-se de fechar o corpo da resposta
+
+		// Verificando o código de status da resposta
+		if response.StatusCode != http.StatusOK {
+			fmt.Println("Error: status not OK", response.Status)
+		}
+
+		// Lendo o corpo da resposta
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			fmt.Println("Error to read reply body:", err)
+		}
+
+		// Imprimindo o corpo da resposta
+		reply = string(body)
+
+	case "HEAD":
+		// Fazendo a solicitação HEAD
+		response, err := http.Head(link)
+		if err != nil {
+			fmt.Println("Error to create solicitation:", err)
+		}
+		defer response.Body.Close() // Certifique-se de fechar o corpo da resposta
+
+		// Verificando o código de status da resposta
+		if response.StatusCode != http.StatusOK {
+			fmt.Println("Error: status not OK", response.Status)
+		}
+
+		// Obtendo os cabeçalhos da resposta
+		headers := response.Header
+		reply = fmt.Sprintf("Headers: %v", headers)
+
+	case "TRACE":
+		req, err := http.NewRequest("TRACE", link, nil)
+		if err != nil {
+			fmt.Println("Error to create TRACE request:", err)
+		}
+
+		// Fazendo a solicitação TRACE
+		client := &http.Client{}
+		response, err := client.Do(req)
+		if err != nil {
+			fmt.Println("Error to create solicitation:", err)
+		}
+		defer response.Body.Close() // Certifique-se de fechar o corpo da resposta
+
+		// Verificando o código de status da resposta
+		if response.StatusCode != http.StatusOK {
+			fmt.Println("Error: status not OK", response.Status)
+		}
+
+		// Lendo o corpo da resposta
+		body, err := io.ReadAll(response.Body)
+		reply = string(body)
+		if err != nil {
+			fmt.Println("Error to read reply body:", err)
+		}
 	default:
-		fmt.Println("Operação desconhecida:", operacao)
-		http.Error(w, "Operação desconhecida", http.StatusBadRequest)
+		fmt.Println("Requisição desconhecida:", reply)
+		http.Error(w, "Requisição desconhecida", http.StatusBadRequest)
 		return
 	}
-
 	// Respondendo ao cliente com o resultado
-	fmt.Fprintf(w, "Resultado da operação %s entre %s e %s é %.2f", operacao, strconv.FormatFloat(val1, 'f', -1, 64), strconv.FormatFloat(val2, 'f', -1, 64), resultado)
+	fmt.Fprintf(w, "A requisição é %s", reply)
 }
 
 func setupRoutes() {
 	http.HandleFunc("/", handleRoot)
-	http.HandleFunc("/calculator", handleCalc)
+	http.HandleFunc("/req", handleReq)
 }
 
 func main() {
+
 	setupRoutes()
 
 	// Establishing TCP Connection

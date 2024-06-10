@@ -11,56 +11,52 @@ import (
 func main() {
 	fmt.Println("Trying to connect with Server on \"localhost:8081\"...")
 
-	var valor1, valor2 int
-	var operacao string
+	var link string
+	var requestHttp string
+	var keepGoing string
 
-	fmt.Print("Digite o primeiro valor: ")
-	fmt.Scanln(&valor1)
+	for {
+		fmt.Println("Qual é o link do site web que deverá processar o pedido http?(EX: http://cin.ufpe.br/~lab9)")
+		fmt.Scanln(&link)
 
-	fmt.Print("Digite o segundo valor: ")
-	fmt.Scanln(&valor2)
+		fmt.Println("Digite a requisição HTTP que você quer enviar para o web. Escolha entre GET, HEAD ou TRACE")
+		fmt.Scanln(&requestHttp)
 
-	fmt.Print("Digite a operação (+, -, *, /): ")
-	fmt.Scanln(&operacao)
+		body, _ := json.Marshal(map[string]string{
+			"link": link,
+		})
+		payload := bytes.NewBuffer(body)
+		// Criando uma requisição HTTP para o servidor local
+		req, err := http.NewRequest(requestHttp, "http://localhost:8081/req", payload)
+		if err != nil {
+			fmt.Println("Erro ao criar requisição:", err)
+			return
+		}
 
-	// valor1 := 2
-	// valor2 := 5
-	// operacao := '/'
+		client := &http.Client{}
+		// Enviando a requisição usando o cliente criado e recebendo a resposta
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Println("Erro ao enviar requisição:", err)
+			return
+		}
+		defer resp.Body.Close()
 
-	body, _ := json.Marshal(map[string]interface{}{
-		"valor1":   valor1,
-		"valor2":   valor2,
-		"operacao": string(operacao),
-	})
-	payload := bytes.NewBuffer(body)
+		// Lendo o corpo da resposta
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println("Erro ao ler resposta:", err)
+			return
+		}
 
-	// Criando uma requisição HTTP POST para o servidor local
-	req, err := http.NewRequest("POST", "http://localhost:8081/calculator", payload)
-	if err != nil {
-		fmt.Println("Erro ao criar requisição:", err)
-		return
+		// Imprimindo a resposta do servidor
+		fmt.Println("Resposta do servidor:", string(respBody))
+
+		fmt.Println("Quer fazer mais uma requisição? (S/N)")
+		fmt.Scanln(&keepGoing)
+		if keepGoing == "N" {
+			break
+		}
 	}
-
-	// Configurando o cabeçalho da requisição
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	// Enviando a requisição usando o cliente criado e recebendo a resposta
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Erro ao enviar requisição:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Lendo o corpo da resposta
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Erro ao ler resposta:", err)
-		return
-	}
-
-	// Imprimindo a resposta do servidor
-	fmt.Println("Resposta do servidor:", string(respBody))
 
 }
