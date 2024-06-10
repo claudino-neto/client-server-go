@@ -23,11 +23,11 @@ func main() {
 		fmt.Scanln(&requestHttp)
 
 		body, _ := json.Marshal(map[string]string{
-			"link": link,
+			"link": "http://cin.ufpe.br/~lab9",
 		})
 		payload := bytes.NewBuffer(body)
 		// Criando uma requisição HTTP para o servidor local
-		req, err := http.NewRequest(requestHttp, "http://localhost:8081/req", payload)
+		req, err := http.NewRequest("GET", "http://localhost:8081/req", payload)
 		if err != nil {
 			fmt.Println("Erro ao criar requisição:", err)
 			return
@@ -48,8 +48,7 @@ func main() {
 			fmt.Println("Erro ao ler resposta:", err)
 			return
 		}
-
-		// Imprimindo a resposta do servidor
+		//Imprimindo a resposta do servidor
 		fmt.Println("Resposta do servidor:", string(respBody))
 
 		fmt.Println("Quer fazer mais uma requisição? (S/N)")
@@ -57,6 +56,7 @@ func main() {
 		if keepGoing == "N" {
 			break
 		}
+
 	}
 
 }

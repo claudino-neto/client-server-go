@@ -16,11 +16,6 @@ func main() {
 	var requestHttp string
 	var keepGoing string
 
-	client, err := rpc.DialHTTP("tcp", "localhost:1234")
-	if err != nil {
-		log.Fatal("Error while dialing: ", err)
-	}
-
 	for {
 		fmt.Println("Qual é o link do site web que deverá processar o pedido http?(EX: http://cin.ufpe.br/~lab9)")
 		fmt.Scanln(&link)
@@ -30,8 +25,11 @@ func main() {
 		args := Args{A: string(link)}
 
 		// Requesting Calculator
-
-		err = client.Call("HTTPproc."+requestHttp, args, &reply)
+		client, err := rpc.DialHTTP("tcp", "localhost:1234")
+		if err != nil {
+			log.Fatal("Error while dialing: ", err)
+		}
+		err = client.Call("HTTPproc.GET", args, &reply)
 		if err != nil {
 			log.Fatal("Error calling the server: ", err)
 		}
