@@ -26,15 +26,18 @@ func main() {
 			"link": "http://cin.ufpe.br/~lab9",
 		})
 		payload := bytes.NewBuffer(body)
+
 		// Criando uma requisição HTTP para o servidor local
-		req, err := http.NewRequest("GET", "http://localhost:8081/req", payload)
+		req, err := http.NewRequest(requestHttp, "http://localhost:8081/req", payload)
 		if err != nil {
 			fmt.Println("Erro ao criar requisição:", err)
 			return
 		}
 
 		client := &http.Client{}
+
 		// Enviando a requisição usando o cliente criado e recebendo a resposta
+		//timerInicio := time.Now()
 		resp, err := client.Do(req)
 		if err != nil {
 			fmt.Println("Erro ao enviar requisição:", err)
@@ -48,9 +51,13 @@ func main() {
 			fmt.Println("Erro ao ler resposta:", err)
 			return
 		}
-		//Imprimindo a resposta do servidor
+		//timerFim := time.Now()
+		//timerPassado := timerFim.Sub(timerInicio)
+		//fmt.Println(timerPassado)
+
 		fmt.Println("Resposta do servidor:", string(respBody))
 
+		//Imprimindo a resposta do servidor
 		fmt.Println("Quer fazer mais uma requisição? (S/N)")
 		fmt.Scanln(&keepGoing)
 		if keepGoing == "N" {

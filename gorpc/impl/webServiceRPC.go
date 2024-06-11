@@ -20,7 +20,7 @@ func (c *HTTP) GET(args *Args, reply *string) error {
 	if err != nil {
 		fmt.Println("Error to create solicitation:", err)
 	}
-	defer response.Body.Close() // Certifique-se de fechar o corpo da resposta
+	defer response.Body.Close()
 
 	// Verificando o código de status da resposta
 	if response.StatusCode != http.StatusOK {
@@ -46,7 +46,7 @@ func (c *HTTP) HEAD(args *Args, reply *string) error {
 	if err != nil {
 		fmt.Println("Error to create solicitation:", err)
 	}
-	defer response.Body.Close() // Certifique-se de fechar o corpo da resposta
+	defer response.Body.Close()
 
 	// Verificando o código de status da resposta
 	if response.StatusCode != http.StatusOK {
@@ -74,7 +74,7 @@ func (c *HTTP) TRACE(args *Args, reply *string) error {
 	if err != nil {
 		fmt.Println("Error to create solicitation:", err)
 	}
-	defer response.Body.Close() // Certifique-se de fechar o corpo da resposta
+	defer response.Body.Close()
 
 	// Verificando o código de status da resposta
 	if response.StatusCode != http.StatusOK {

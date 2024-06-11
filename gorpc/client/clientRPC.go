@@ -24,22 +24,26 @@ func main() {
 
 		args := Args{A: string(link)}
 
-		// Requesting Calculator
+		// Conectando com o server
+
+		//timerInicio := time.Now()
 		client, err := rpc.DialHTTP("tcp", "localhost:1234")
 		if err != nil {
 			log.Fatal("Error while dialing: ", err)
 		}
-		err = client.Call("HTTPproc.GET", args, &reply)
+		err = client.Call("HTTPproc."+requestHttp, args, &reply)
 		if err != nil {
 			log.Fatal("Error calling the server: ", err)
 		}
-		log.Println("Reply: %s", reply)
+		//timerFim := time.Now()
+		//timerPassado := timerFim.Sub(timerInicio)
+		//fmt.Println(timerPassado)
 
+		log.Println("Reply: %s", reply)
 		fmt.Println("Quer fazer mais uma requisição? (S/N)")
 		fmt.Scanln(&keepGoing)
 		if keepGoing == "N" {
 			break
 		}
 	}
-
 }
