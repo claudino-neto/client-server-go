@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package impl;
 
+option go_package = "gRPC/proto;impl";
+
 service HTTPService {
     rpc GET (Request) returns (Response);
 }
@@ -13,5 +15,3 @@ message Request {
 message Response {
     string body = 1;
 }
-
-
