@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	httpProc := new(impl.HTTP)
-	rpc.RegisterName("HTTPproc", httpProc)
+	httpProc := impl.NewHTTPproc() // Use NewHTTPproc para inicializar corretamente
+	rpc.Register(httpProc)
 	rpc.HandleHTTP()
 	listener, err := net.Listen("tcp", ":1234")
 	if err != nil {
