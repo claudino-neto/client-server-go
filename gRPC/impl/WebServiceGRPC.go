@@ -3,6 +3,7 @@ package impl
 import (
 	"bytes"
 	"context"
+	pb "gRPC/gen"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -18,6 +19,7 @@ type Args struct {
 
 // HTTPproc struct to hold the HTTP client and cookie jar
 type HTTPproc struct {
+	pb.UnimplementedHTTPServiceServer
 	Jar http.CookieJar
 }
 
@@ -28,8 +30,8 @@ func NewHTTPproc() *HTTPproc {
 }
 
 // GET method performs a GET request
-func (s *HTTPproc) GET(args *Args, reply *string) error {
-	link := args.A
+func (s *HTTPproc) GET(ctx context.Context, args *pb.Request) (*pb.Response, error) {
+	link := args.Link
 	method := "GET"
 	var body io.Reader = nil
 	u, _ := url.Parse(link)
@@ -79,24 +81,18 @@ func (s *HTTPproc) GET(args *Args, reply *string) error {
 	}
 
 	var (
-		res  *http.Response
-		erro error
+		res *http.Response
 	)
 
 	// Sending the request
-	res, erro = s.Do(req)
-	if erro != nil {
-		return erro
-	}
+	res, _ = s.Do(req)
+
 	defer res.Body.Close()
 
-	bodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
+	bodyBytes, _ := io.ReadAll(res.Body)
 
-	*reply = string(bodyBytes)
-	return nil
+	reply := string(bodyBytes)
+	return &pb.Response{Body: reply}, nil
 }
 
 // Do method sends the HTTP request and returns the response

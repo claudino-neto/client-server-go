@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package impl;
+package gen;
 
 option go_package = "gRPC/proto;impl";
 
@@ -9,7 +9,7 @@ service HTTPService {
 }
 
 message Request {
-    string link = 1;
+    string Link = 1;
 }
 
 message Response {

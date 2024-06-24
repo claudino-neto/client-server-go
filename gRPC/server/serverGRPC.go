@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	pb "gRPC/gen"
+	"gRPC/impl"
 	"net"
 	"strconv"
 
@@ -9,7 +11,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-const GrpcPort = 50051
+const GrpcPort = 1234
 
 // Função para verificar e tratar erros
 func ChecaErro(err error, msg string) {
@@ -25,20 +27,10 @@ func main() {
 	ChecaErro(err, "Não foi possível criar o listener")
 	server := grpc.NewServer()
 
-	//gen.RegisterHTTPServer(server, &impl.HTTPproc{})
+	pb.RegisterHTTPServiceServer(server, &impl.HTTPproc{})
 	reflection.Register(server)
 	fmt.Println("Servidor pronto...")
 
 	err = server.Serve(conn)
 	ChecaErro(err, "Falha ao inciar servidor")
-
-	//httpProc := impl.NewHTTPproc() // Use NewHTTPproc para inicializar corretamente
-	// rpc.Register(httpProc)
-	// rpc.HandleHTTP()
-	// listener, err := net.Listen("tcp", ":1234")
-	// if err != nil {
-	// 	log.Fatal("Error while listening: ", err)
-	// }
-	// fmt.Println("Server aberto :-)")
-	// http.Serve(listener, nil)
 }

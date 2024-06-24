@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	pb "gRPC/gen"
 	"strconv"
 	"time"
 
@@ -14,7 +15,7 @@ type Args struct {
 	A string
 }
 
-const GrpcPort = 50051
+const GrpcPort = 1234
 
 func ChecaErro(err error, msg string) {
 	if err != nil {
@@ -25,23 +26,27 @@ func ChecaErro(err error, msg string) {
 
 func main() {
 
-	var idx int32
-
+	//Cria as credenciais de transporte para garantir segurança
 	opt := grpc.WithTransportCredentials(insecure.NewCredentials())
-	endPoint := "localhost" + ":" + strconv.Itoa(GrpcPort)
-	conn, err := grpc.Dial(endPoint, opt)
+	endPoint := "localhost" + ":" + strconv.Itoa(GrpcPort)                     //define em que porta o client deve parar
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5000) //controlar o tempo máx que a função vai levar(1 seg no nosso caso)
+	defer cancel()
+
+	//cria a conexão nova
+	conn, err := grpc.NewClient(endPoint, opt)
 	ChecaErro(err, "Não foi possível se conectar ao servidor em "+endPoint)
 
 	defer conn.Close()
 
-	calc := gen.NewCalculadoraClient(conn)
+	HTTPreq := pb.NewHTTPServiceClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	for idx = 0; idx < shared.SampleSize; idx++ {
-		x, err := calc.Add(ctx, &gen.Request{P1: 1, P2: 2})
+	for idx := 0; idx < 10000; idx++ { // trocar o numero pra quantidade de requisições que você quer
+		TempoInicio := time.Now()
+		_, err := HTTPreq.GET(ctx, &pb.Request{Link: "http://cin.ufpe.br/~lab9"})
+		TempoFim := time.Now()
+		TempoTotal := TempoFim.Sub(TempoInicio)
+		fmt.Println(TempoTotal)
 		ChecaErro(err, "Erro ao invocar a operação remota")
-		fmt.Println(x.N)
+		//fmt.Println(x.Body)
 	}
 }
