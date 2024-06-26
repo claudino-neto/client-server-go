@@ -45,39 +45,11 @@ func (s *HTTPproc) GET(ctx context.Context, args *pb.Request) (*pb.Response, err
 		Host:       u.Host,
 	}
 
-	// if body != nil {
-	// 	req.Body = io.NopCloser(body)
-	// 	switch v := body.(type) {
-	// 	case *bytes.Buffer:
-	// 		req.ContentLength = int64(v.Len())
-	// 		buf := v.Bytes()
-	// 		req.GetBody = func() (io.ReadCloser, error) {
-	// 			r := bytes.NewReader(buf)
-	// 			return io.NopCloser(r), nil
-	// 		}
-	// 	case *bytes.Reader:
-	// 		req.ContentLength = int64(v.Len())
-	// 		snapshot := *v
-	// 		req.GetBody = func() (io.ReadCloser, error) {
-	// 			r := snapshot
-	// 			return io.NopCloser(&r), nil
-	// 		}
-	// 	case *strings.Reader:
-	// 		req.ContentLength = int64(v.Len())
-	// 		snapshot := *v
-	// 		req.GetBody = func() (io.ReadCloser, error) {
-	// 			r := snapshot
-	// 			return io.NopCloser(&r), nil
-	// 		}
-	// 	}
-	// }
-
 	if s.Jar != nil {
 		for _, cookie := range s.Jar.Cookies(req.URL) {
 			req.AddCookie(cookie)
 		}
 	}
-
 	var (
 		res *http.Response
 	)
@@ -91,11 +63,6 @@ func (s *HTTPproc) GET(ctx context.Context, args *pb.Request) (*pb.Response, err
 
 	reply := string(bodyBytes)
 	return &pb.Response{Body: reply}, nil
-}
-
-// Do method sends the HTTP request and returns the response
-func (s *HTTPproc) Do(req *http.Request) (*http.Response, error) {
-	return s.Send(req, s.createTrace(req.Context()))
 }
 
 // Send method sends the HTTP request with tracing enabled
@@ -129,3 +96,30 @@ func (s *HTTPproc) createTrace(ctx context.Context) *httptrace.ClientTrace {
 		},
 	}
 }
+
+// if body != nil {
+// 	req.Body = io.NopCloser(body)
+// 	switch v := body.(type) {
+// 	case *bytes.Buffer:
+// 		req.ContentLength = int64(v.Len())
+// 		buf := v.Bytes()
+// 		req.GetBody = func() (io.ReadCloser, error) {
+// 			r := bytes.NewReader(buf)
+// 			return io.NopCloser(r), nil
+// 		}
+// 	case *bytes.Reader:
+// 		req.ContentLength = int64(v.Len())
+// 		snapshot := *v
+// 		req.GetBody = func() (io.ReadCloser, error) {
+// 			r := snapshot
+// 			return io.NopCloser(&r), nil
+// 		}
+// 	case *strings.Reader:
+// 		req.ContentLength = int64(v.Len())
+// 		snapshot := *v
+// 		req.GetBody = func() (io.ReadCloser, error) {
+// 			r := snapshot
+// 			return io.NopCloser(&r), nil
+// 		}
+// 	}
+// }
