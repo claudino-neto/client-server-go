@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/rpc"
+	"os"
 	"time"
 )
 
@@ -13,27 +14,35 @@ type Args struct {
 
 func main() {
 	var reply string
-	var link string
 
 	client, err := rpc.DialHTTP("tcp", "localhost:1234")
 	if err != nil {
 		log.Fatal("Error while dialing: ", err)
 	}
 
-	args := Args{A: link}
+	// Creates a new file to hold the time durations
+	file, err := os.Create("time3.txt")
+	if err != nil {
+		fmt.Println("Failed to create file: ", err)
+	}
+	defer file.Close()
+
+	args := Args{A: "http://cin.ufpe.br/~lab9"}
 	// Conectando com o server
-	for idx := 0; idx < 1; idx++ { //trocar o numero pra quantidade de requisições que você quer
+	for idx := 0; idx < 10000; idx++ { //trocar o numero pra quantidade de requisições que você quer
 		TempoInicio := time.Now()
 		err = client.Call("HTTPproc.GET", args, &reply)
+		if err != nil {
+			fmt.Println("Error calling the server: ", err)
+		}
 		TempoFim := time.Now()
 		TempoTotal := TempoFim.Sub(TempoInicio)
-		fmt.Println(TempoTotal)
+
+		_, err = file.WriteString(TempoTotal.String() + "\n")
+		if err != nil {
+			fmt.Println("Failed to write to file: ", err)
+		}
 	}
 
-	if err != nil {
-		log.Fatal("Error calling the server: ", err)
-	}
-
-	log.Printf("Reply: %s", reply)
-
+	// log.Printf("Reply: %s", reply)
 }

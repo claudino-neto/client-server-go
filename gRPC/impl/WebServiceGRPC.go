@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"bytes"
 	"context"
 	pb "gRPC/gen"
 	"io"
@@ -9,7 +8,6 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptrace"
 	"net/url"
-	"strings"
 )
 
 // Args struct to hold arguments for HTTP requests
@@ -33,7 +31,7 @@ func NewHTTPproc() *HTTPproc {
 func (s *HTTPproc) GET(ctx context.Context, args *pb.Request) (*pb.Response, error) {
 	link := args.Link
 	method := "GET"
-	var body io.Reader = nil
+	// var body io.Reader = nil
 	u, _ := url.Parse(link)
 
 	// NEW REQUEST
@@ -47,32 +45,32 @@ func (s *HTTPproc) GET(ctx context.Context, args *pb.Request) (*pb.Response, err
 		Host:       u.Host,
 	}
 
-	if body != nil {
-		req.Body = io.NopCloser(body)
-		switch v := body.(type) {
-		case *bytes.Buffer:
-			req.ContentLength = int64(v.Len())
-			buf := v.Bytes()
-			req.GetBody = func() (io.ReadCloser, error) {
-				r := bytes.NewReader(buf)
-				return io.NopCloser(r), nil
-			}
-		case *bytes.Reader:
-			req.ContentLength = int64(v.Len())
-			snapshot := *v
-			req.GetBody = func() (io.ReadCloser, error) {
-				r := snapshot
-				return io.NopCloser(&r), nil
-			}
-		case *strings.Reader:
-			req.ContentLength = int64(v.Len())
-			snapshot := *v
-			req.GetBody = func() (io.ReadCloser, error) {
-				r := snapshot
-				return io.NopCloser(&r), nil
-			}
-		}
-	}
+	// if body != nil {
+	// 	req.Body = io.NopCloser(body)
+	// 	switch v := body.(type) {
+	// 	case *bytes.Buffer:
+	// 		req.ContentLength = int64(v.Len())
+	// 		buf := v.Bytes()
+	// 		req.GetBody = func() (io.ReadCloser, error) {
+	// 			r := bytes.NewReader(buf)
+	// 			return io.NopCloser(r), nil
+	// 		}
+	// 	case *bytes.Reader:
+	// 		req.ContentLength = int64(v.Len())
+	// 		snapshot := *v
+	// 		req.GetBody = func() (io.ReadCloser, error) {
+	// 			r := snapshot
+	// 			return io.NopCloser(&r), nil
+	// 		}
+	// 	case *strings.Reader:
+	// 		req.ContentLength = int64(v.Len())
+	// 		snapshot := *v
+	// 		req.GetBody = func() (io.ReadCloser, error) {
+	// 			r := snapshot
+	// 			return io.NopCloser(&r), nil
+	// 		}
+	// 	}
+	// }
 
 	if s.Jar != nil {
 		for _, cookie := range s.Jar.Cookies(req.URL) {
@@ -85,7 +83,7 @@ func (s *HTTPproc) GET(ctx context.Context, args *pb.Request) (*pb.Response, err
 	)
 
 	// Sending the request
-	res, _ = s.Do(req)
+	res, _ = s.Send(req, s.createTrace(req.Context()))
 
 	defer res.Body.Close()
 

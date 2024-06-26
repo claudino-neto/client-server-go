@@ -1,14 +1,12 @@
 package impl
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptrace"
 	"net/url"
-	"strings"
 )
 
 // Args struct to hold arguments for HTTP requests
@@ -31,7 +29,7 @@ func NewHTTPproc() *HTTPproc {
 func (s *HTTPproc) GET(args *Args, reply *string) error {
 	link := args.A
 	method := "GET"
-	var body io.Reader = nil
+	// var body io.Reader = nil
 	u, _ := url.Parse(link)
 
 	// NEW REQUEST
@@ -45,32 +43,32 @@ func (s *HTTPproc) GET(args *Args, reply *string) error {
 		Host:       u.Host,
 	}
 
-	if body != nil {
-		req.Body = io.NopCloser(body)
-		switch v := body.(type) {
-		case *bytes.Buffer:
-			req.ContentLength = int64(v.Len())
-			buf := v.Bytes()
-			req.GetBody = func() (io.ReadCloser, error) {
-				r := bytes.NewReader(buf)
-				return io.NopCloser(r), nil
-			}
-		case *bytes.Reader:
-			req.ContentLength = int64(v.Len())
-			snapshot := *v
-			req.GetBody = func() (io.ReadCloser, error) {
-				r := snapshot
-				return io.NopCloser(&r), nil
-			}
-		case *strings.Reader:
-			req.ContentLength = int64(v.Len())
-			snapshot := *v
-			req.GetBody = func() (io.ReadCloser, error) {
-				r := snapshot
-				return io.NopCloser(&r), nil
-			}
-		}
-	}
+	// if body != nil {
+	// 	req.Body = io.NopCloser(body)
+	// 	switch v := body.(type) {
+	// 	case *bytes.Buffer:
+	// 		req.ContentLength = int64(v.Len())
+	// 		buf := v.Bytes()
+	// 		req.GetBody = func() (io.ReadCloser, error) {
+	// 			r := bytes.NewReader(buf)
+	// 			return io.NopCloser(r), nil
+	// 		}
+	// 	case *bytes.Reader:
+	// 		req.ContentLength = int64(v.Len())
+	// 		snapshot := *v
+	// 		req.GetBody = func() (io.ReadCloser, error) {
+	// 			r := snapshot
+	// 			return io.NopCloser(&r), nil
+	// 		}
+	// 	case *strings.Reader:
+	// 		req.ContentLength = int64(v.Len())
+	// 		snapshot := *v
+	// 		req.GetBody = func() (io.ReadCloser, error) {
+	// 			r := snapshot
+	// 			return io.NopCloser(&r), nil
+	// 		}
+	// 	}
+	// }
 
 	if s.Jar != nil {
 		for _, cookie := range s.Jar.Cookies(req.URL) {
