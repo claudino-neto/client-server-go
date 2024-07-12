@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package gen;
+
+option go_package = "gRPC/proto;impl";
+
+service HTTPService {
+    rpc GET (Request) returns (Response);
+}
+
+message Request {
+    string Link = 1;
+}
+
+message Response {
+    string body = 1;
+}

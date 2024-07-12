@@ -28,7 +28,7 @@ func ChecaErro(err error, msg string) {
 func main() {
 
 	// Creates a new file to hold the time durations
-	file, err := os.Create("timenoprint.txt")
+	file, err := os.Create("time.txt")
 	if err != nil {
 		fmt.Println("Failed to create file: ", err)
 	}
@@ -48,11 +48,11 @@ func main() {
 
 	HTTPreq := pb.NewHTTPServiceClient(conn)
 
-	for idx := 0; idx < 100; idx++ { // trocar o numero pra quantidade de requisições que você quer
+	for idx := 0; idx < 2; idx++ { // trocar o numero pra quantidade de requisições que você quer
 		TempoInicio := time.Now()
-		_, err := HTTPreq.GET(ctx, &pb.Request{Link: "http://cin.ufpe.br/~lab9"})
+		x, err := HTTPreq.GET(ctx, &pb.Request{Link: "http://cin.ufpe.br/~lab9"})
 		ChecaErro(err, "Erro ao invocar a operação remota")
-		//fmt.Println(x.Body)
+		fmt.Println(x.Body)
 		TempoFim := time.Now()
 		TempoTotal := TempoFim.Sub(TempoInicio)
 
