@@ -2,88 +2,38 @@ package impl
 
 import (
 	"context"
+	pb "gRPC/gen"
 	"io"
 	"net/http"
-	"net/http/cookiejar"
 	"net/http/httptrace"
 	"net/url"
 	"sync"
-
-	pb "gRPC/gen"
 )
-
-// Args struct to hold arguments for HTTP requests
-type Args struct {
-	A string
-}
 
 // HTTPproc struct to hold the HTTP client and cookie jar
 type HTTPproc struct {
 	pb.UnimplementedHTTPServiceServer
-	Jar http.CookieJar
 }
 
-// NewHTTPproc creates a new instance of HTTPproc with a cookie jar
+// NewHTTPproc creates a new instance of HTTPproc
 func NewHTTPproc() *HTTPproc {
-	jar, _ := cookiejar.New(nil)
-	return &HTTPproc{Jar: jar}
+	return &HTTPproc{}
 }
 
-// GET method performs concurrent GET requests
+// GET method performs a GET request
 func (s *HTTPproc) GET(ctx context.Context, args *pb.Request) (*pb.Response, error) {
-	link := args.Link
-	numRequests := 20
-	results := make(chan string, numRequests)
-	var wg sync.WaitGroup
+	var (
+		client      = &http.Client{}
+		link        = args.Link
+		u, _        = url.Parse(link)
+		reqContext  context.Context
+		clientTrace *httptrace.ClientTrace
+		wg          sync.WaitGroup
+	)
 
-	for i := 0; i < numRequests; i++ {
-		wg.Add(1)
-		go s.performRequest(ctx, link, results, &wg)
-	}
-
-	wg.Wait()
-	close(results)
-
-	// Concatenate results
-	var reply string
-	for result := range results {
-		reply += result + "\n"
-	}
-
-	return &pb.Response{Body: reply}, nil
-}
-
-// performRequest performs a single GET request and sends the result to a channel
-func (s *HTTPproc) performRequest(ctx context.Context, link string, results chan<- string, wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	u, err := url.Parse(link)
-	if err != nil {
-		results <- "Error parsing URL: " + err.Error()
-		return
-	}
-
-	req := s.createRequest("GET", u)
-	res, err := s.Send(req, s.createTrace(ctx))
-	if err != nil {
-		results <- "Error sending request: " + err.Error()
-		return
-	}
-	defer res.Body.Close()
-
-	bodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		results <- "Error reading response body: " + err.Error()
-		return
-	}
-
-	results <- string(bodyBytes)
-}
-
-// createRequest creates a new HTTP request
-func (s *HTTPproc) createRequest(method string, u *url.URL) *http.Request {
-	return &http.Request{
-		Method:     method,
+	//Creating the request
+	req := &http.Request{
+		Method:     "GET",
 		URL:        u,
 		Proto:      "HTTP/2",
 		ProtoMajor: 2,
@@ -91,20 +41,30 @@ func (s *HTTPproc) createRequest(method string, u *url.URL) *http.Request {
 		Header:     make(http.Header),
 		Host:       u.Host,
 	}
-}
 
-// Send method sends the HTTP request with tracing enabled
-func (s *HTTPproc) Send(req *http.Request, trace *httptrace.ClientTrace) (*http.Response, error) {
-	client := &http.Client{
-		Jar: s.Jar,
-	}
+	// Creating Request Context and Client Trace concurrently
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		reqContext = req.Context()
+	}()
+	go func() {
+		defer wg.Done()
+		clientTrace = s.createTrace()
+	}()
+	wg.Wait()
 
-	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
-	return client.Do(req)
+	req = req.WithContext(httptrace.WithClientTrace(reqContext, clientTrace))
+	res, _ := client.Do(req)
+
+	defer res.Body.Close()
+	bodyBytes, _ := io.ReadAll(res.Body)
+	reply := string(bodyBytes)
+	return &pb.Response{Body: reply}, nil
 }
 
 // createTrace method creates a new ClientTrace for tracing the request
-func (s *HTTPproc) createTrace(ctx context.Context) *httptrace.ClientTrace {
+func (s *HTTPproc) createTrace() *httptrace.ClientTrace {
 	return &httptrace.ClientTrace{
 		GotConn: func(info httptrace.GotConnInfo) {
 			// Called when a connection is obtained
