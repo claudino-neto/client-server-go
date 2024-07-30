@@ -48,9 +48,16 @@ func main() {
 
 	HTTPreq := pb.NewHTTPServiceClient(conn)
 
+	//Creating the request
+	req := &pb.HttpRequest{
+		Method:     "GET",
+		URL:        "index.html",
+		Header:     make(http.Header),
+	}
+
 	for idx := 0; idx < 2; idx++ { // trocar o numero pra quantidade de requisições que você quer
 		TempoInicio := time.Now()
-		x, err := HTTPreq.GET(ctx, &pb.Request{Link: "http://cin.ufpe.br/~lab9"})
+		x, err := HTTPreq.GET(ctx, req)
 		ChecaErro(err, "Erro ao invocar a operação remota")
 		fmt.Println(x.Body)
 		TempoFim := time.Now()
@@ -62,3 +69,4 @@ func main() {
 		}
 	}
 }
+

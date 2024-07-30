@@ -8,6 +8,7 @@ import (
 	"net/http/httptrace"
 	"net/url"
 	"sync"
+	"os"
 )
 
 // HTTPproc struct to hold the HTTP client and cookie jar
@@ -21,59 +22,32 @@ func NewHTTPproc() *HTTPproc {
 }
 
 // GET method performs a GET request
-func (s *HTTPproc) GET(ctx context.Context, args *pb.Request) (*pb.Response, error) {
-	var (
-		client      = &http.Client{}
-		link        = args.Link
-		u, _        = url.Parse(link)
-		reqContext  context.Context
-		clientTrace *httptrace.ClientTrace
-		wg          sync.WaitGroup
-	)
-
-	//Creating the request
-	req := &http.Request{
-		Method:     "GET",
-		URL:        u,
-		Proto:      "HTTP/2",
-		ProtoMajor: 2,
-		ProtoMinor: 0,
-		Header:     make(http.Header),
-		Host:       u.Host,
+func (s *HTTPproc) GET(ctx context.Context, req *&pb.HttpRequest) (*pb.Response, error) {
+		method := req.GetMethod()
+		url := req.GetUrl()
+		header := req.GetHeader()
+		
+		if method != "GET" {
+			return nil, fmt.Errorf("unsupported HTTP method: %s", method)
+		}
+		// Define the path to the local index.html file
+		// You can adjust the path as needed
+		filePath := fmt.Sprintf("marmotas/%s", url)
+	
+		// Open the file
+		file, err := os.Open(filePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
+		}
+		defer file.Close()
+	
+		// Read the file content
+		bodyBytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
+		}
+	
+		// Return the file content in the response
+		return &pb.Response{Body: string(bodyBytes)}, nil
 	}
 
-	// Creating Request Context and Client Trace concurrently
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		reqContext = req.Context()
-	}()
-	go func() {
-		defer wg.Done()
-		clientTrace = s.createTrace()
-	}()
-	wg.Wait()
-
-	req = req.WithContext(httptrace.WithClientTrace(reqContext, clientTrace))
-	res, _ := client.Do(req)
-
-	defer res.Body.Close()
-	bodyBytes, _ := io.ReadAll(res.Body)
-	reply := string(bodyBytes)
-	return &pb.Response{Body: reply}, nil
-}
-
-// createTrace method creates a new ClientTrace for tracing the request
-func (s *HTTPproc) createTrace() *httptrace.ClientTrace {
-	return &httptrace.ClientTrace{
-		GotConn: func(info httptrace.GotConnInfo) {
-			// Called when a connection is obtained
-		},
-		DNSStart: func(info httptrace.DNSStartInfo) {
-			// Called when DNS resolution begins
-		},
-		DNSDone: func(info httptrace.DNSDoneInfo) {
-			// Called when DNS resolution ends
-		},
-	}
-}
