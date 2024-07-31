@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.4.0
 // - protoc             v5.27.1
-// source: proto/service.proto
+// source: gRPC_conc/service.proto
 
-package impl
+package gen
 
 import (
 	context "context"
@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	HTTPService_GET_FullMethodName = "/impl.HTTPService/GET"
+	HTTPService_GET_FullMethodName = "/gen.HTTPService/GET"
 )
 
 // HTTPServiceClient is the client API for HTTPService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Definição do serviço HTTPService
 type HTTPServiceClient interface {
-	GET(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+	GET(ctx context.Context, in *HttpRequest, opts ...grpc.CallOption) (*Response, error)
 }
 
 type hTTPServiceClient struct {
@@ -37,7 +39,7 @@ func NewHTTPServiceClient(cc grpc.ClientConnInterface) HTTPServiceClient {
 	return &hTTPServiceClient{cc}
 }
 
-func (c *hTTPServiceClient) GET(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
+func (c *hTTPServiceClient) GET(ctx context.Context, in *HttpRequest, opts ...grpc.CallOption) (*Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Response)
 	err := c.cc.Invoke(ctx, HTTPService_GET_FullMethodName, in, out, cOpts...)
@@ -50,8 +52,10 @@ func (c *hTTPServiceClient) GET(ctx context.Context, in *Request, opts ...grpc.C
 // HTTPServiceServer is the server API for HTTPService service.
 // All implementations must embed UnimplementedHTTPServiceServer
 // for forward compatibility
+//
+// Definição do serviço HTTPService
 type HTTPServiceServer interface {
-	GET(context.Context, *Request) (*Response, error)
+	GET(context.Context, *HttpRequest) (*Response, error)
 	mustEmbedUnimplementedHTTPServiceServer()
 }
 
@@ -59,7 +63,7 @@ type HTTPServiceServer interface {
 type UnimplementedHTTPServiceServer struct {
 }
 
-func (UnimplementedHTTPServiceServer) GET(context.Context, *Request) (*Response, error) {
+func (UnimplementedHTTPServiceServer) GET(context.Context, *HttpRequest) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GET not implemented")
 }
 func (UnimplementedHTTPServiceServer) mustEmbedUnimplementedHTTPServiceServer() {}
@@ -76,7 +80,7 @@ func RegisterHTTPServiceServer(s grpc.ServiceRegistrar, srv HTTPServiceServer) {
 }
 
 func _HTTPService_GET_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+	in := new(HttpRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -88,7 +92,7 @@ func _HTTPService_GET_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: HTTPService_GET_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HTTPServiceServer).GET(ctx, req.(*Request))
+		return srv.(HTTPServiceServer).GET(ctx, req.(*HttpRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -97,7 +101,7 @@ func _HTTPService_GET_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var HTTPService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "impl.HTTPService",
+	ServiceName: "gen.HTTPService",
 	HandlerType: (*HTTPServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -106,5 +110,5 @@ var HTTPService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/service.proto",
+	Metadata: "gRPC_conc/service.proto",
 }

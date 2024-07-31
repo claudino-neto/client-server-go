@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	pb "gRPC/gen"
-	"gRPC/impl"
+	pb "gRPC_conc/gen"
+	"gRPC_conc/impl"
 	"net"
 	"strconv"
 

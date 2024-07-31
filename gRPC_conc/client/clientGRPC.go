@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	pb "gRPC/gen"
+	pb "gRPC_conc/gen"
 	"os"
 	"strconv"
 	"time"
@@ -48,18 +48,21 @@ func main() {
 
 	HTTPreq := pb.NewHTTPServiceClient(conn)
 
-	//Creating the request
-	req := &pb.HttpRequest{
-		Method:     "GET",
-		URL:        "index.html",
-		Header:     make(http.Header),
-	}
-
-	for idx := 0; idx < 2; idx++ { // trocar o numero pra quantidade de requisições que você quer
+	for idx := 0; idx < 10000; idx++ { // trocar o numero pra quantidade de requisições que você quer
 		TempoInicio := time.Now()
-		x, err := HTTPreq.GET(ctx, req)
+
+		//Creating the request
+		req := &pb.HttpRequest{
+			Method:  "GET",
+			Url:     "",
+			Headers: map[string]string{},
+		}
+
+		_, err := HTTPreq.GET(ctx, req)
 		ChecaErro(err, "Erro ao invocar a operação remota")
-		fmt.Println(x.Body)
+
+		//fmt.Println(x.Body)
+
 		TempoFim := time.Now()
 		TempoTotal := TempoFim.Sub(TempoInicio)
 
@@ -69,4 +72,3 @@ func main() {
 		}
 	}
 }
-

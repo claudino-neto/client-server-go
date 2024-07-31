@@ -2,21 +2,21 @@ syntax = "proto3";
 
 package gen;
 
-option go_package = "gRPC/gen;impl";
+option go_package = "gRPC/gen;gen";
 
-// HTTPService is the service definition
+// Definição do serviço HTTPService
 service HTTPService {
-    rpc GET (Request) returns (Response);
+    rpc GET (HttpRequest) returns (Response);
 }
 
-// Request message contains the HTTP method, URL, and other information
-message Request {
-    string Method = 1;  
-    string Url = 2;    
-    http.Request Header = 3
+// Mensagem para representar uma requisição HTTP
+message HttpRequest {
+    string method = 1;
+    string url = 2;
+    map<string, string> headers = 3;
 }
 
-// Response message contains the body of the response
+// Mensagem para representar uma resposta HTTP
 message Response {
     string body = 1;
 }
